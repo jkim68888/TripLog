@@ -1,9 +1,18 @@
+import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
-import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useRouter } from 'expo-router';
+import { SafeAreaView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
+  const router = useRouter()
+
+  const moveToAddPostScreen = () => {
+    router.push('/addPost')
+  }
+
   return (
   <ThemedView style={styles.root}>
     <SafeAreaView>
@@ -22,14 +31,16 @@ export default function HomeScreen() {
           </ThemedView>
 
           {/* 여행 추가하기 버튼 */}
-          <TouchableOpacity style={styles.addButton}>
-            <Text style={styles.addButtonText}>여행 추가 하기</Text>
+          <TouchableOpacity style={styles.addButton} onPress={moveToAddPostScreen}>
+            <ThemedText style={styles.addButtonText} fontSize={15} fontWeight='600'>여행 추가하기</ThemedText>
           </TouchableOpacity>
       </View>
     </SafeAreaView>
   </ThemedView>
   );
 }
+
+const inputColor = useThemeColor('text')
 
 const styles = StyleSheet.create({
   root: {
@@ -55,7 +66,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     flex: 1,
     fontSize: 16,
-    fontFamily: 'Pretendard-Medium'
+    fontFamily: 'Pretendard-Medium',
+    color: inputColor
   },
   addButton: {
     width: 108,
@@ -73,8 +85,5 @@ const styles = StyleSheet.create({
   addButtonText: {
     lineHeight: 40,
     textAlign: 'center',
-    color: Colors.white,
-    fontSize: 15,
-    fontFamily: 'Pretendard-SemiBold',
   }
 });

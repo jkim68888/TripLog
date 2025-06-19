@@ -4,21 +4,17 @@ import { Text, type TextProps } from 'react-native';
 type FontWeight = '400' | '500' | '600' | '700';
 
 export type ThemedTextProps = TextProps & {
-  lightColor?: string;
-  darkColor?: string;
   fontSize: number;
   fontWeight?: FontWeight;
 };
 
 export function ThemedText({
   style,
-  lightColor,
-  darkColor,
   fontSize,
   fontWeight = '400',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor('text');
 
   // fontWeight에 따라 fontFamily를 매핑
   const fontFamilyMap = {
