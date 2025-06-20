@@ -1,13 +1,18 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function AddMetaDataScreen() {
   const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDateTimePicker, setShowDateTimePicker] = useState(false);
+  const inputColor = useThemeColor('text');
 
   // 예시 이미지 데이터 (최대 5개)
   const images = [
@@ -17,6 +22,7 @@ export default function AddMetaDataScreen() {
     { uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb', id: 4 },
     { uri: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429', id: 5 },
   ];
+
   const moveToMainScreen = () => {
     router.push('/(tabs)')
   }
@@ -24,6 +30,17 @@ export default function AddMetaDataScreen() {
   const moveToLocationScreen = () => {
     // TODO: Implement location screen navigation
   }
+
+  const formatDateTime = (date: Date) => {
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -46,28 +63,29 @@ export default function AddMetaDataScreen() {
         <View style={styles.titleContainer}>
           <ThemedText fontSize={18} fontWeight='600'>사진의 장소</ThemedText>
           <TouchableOpacity style={styles.changeButton}>
-            <IconSymbol name='arrow.clockwise' size={22} color={Colors.primary} />
+            <MaterialCommunityIcons name='refresh' size={22} color={Colors.primary} />
             <ThemedText fontSize={16} fontWeight='500'>변경</ThemedText>
           </TouchableOpacity>
         </View>
         <TextInput
-          style={styles.locationInput}
+          style={[styles.inputBox, {color: inputColor}]}
           placeholder="갤러리에서 가져온 장소 기본값"
           placeholderTextColor={Colors.grayAD}
         />
 
-        {/* 시간 */}
+        {/* 날짜와 시간 */}
         <View style={styles.titleContainer}>
-          <ThemedText fontSize={18} fontWeight='600'>사진의 시간</ThemedText>
-          <TouchableOpacity style={styles.changeButton}>
-            <IconSymbol name='arrow.clockwise' size={22} color={Colors.primary} />
+          <ThemedText fontSize={18} fontWeight='600'>사진의 날짜와 시간</ThemedText>
+          <TouchableOpacity style={styles.changeButton} onPress={() => setShowDateTimePicker(true)}>
+            <MaterialCommunityIcons name='refresh' size={22} color={Colors.primary} />
             <ThemedText fontSize={16} fontWeight='500'>변경</ThemedText>
           </TouchableOpacity>
         </View>
         <TextInput
-          style={styles.locationInput}
-          placeholder="갤러리에서 가져온 시간 기본값"
+          style={[styles.inputBox, {color: inputColor}]}
+          value={formatDateTime(selectedDate)}
           placeholderTextColor={Colors.grayAD}
+          editable={false}
         />
 
       </ScrollView>
@@ -76,6 +94,20 @@ export default function AddMetaDataScreen() {
       <TouchableOpacity style={styles.confirmBtn} onPress={moveToMainScreen}>
         <Text style={styles.confirmBtnText}>등록</Text>
       </TouchableOpacity>
+
+      {/* 날짜와 시간 피커 */}
+      <DateTimePickerModal
+        isVisible={showDateTimePicker}
+        mode="datetime"
+        display='inline'
+        onConfirm={(date) => {
+          setShowDateTimePicker(false);
+          setSelectedDate(date);
+        }}
+        onCancel={() => setShowDateTimePicker(false)}
+        locale="ko"
+        date={selectedDate}
+      />
     </ThemedView>
   )
 }
@@ -118,11 +150,10 @@ const styles = StyleSheet.create({
     gap: 4,
     alignItems: 'center',
   },
-  locationInput: {
+  inputBox: {
     fontSize: 15,
-    color: Colors.blueGray,
     fontFamily: 'Pretendard-Regular',
-    backgroundColor:  Colors.grayF9,
+    backgroundColor: 'transparent',
     borderRadius: 4,
     borderWidth: 1,
     borderColor: Colors.grayED,
@@ -137,7 +168,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     opacity: 1,
     marginHorizontal: 16,
-    marginBottom: 40,
+    marginBottom: 48,
     marginTop: 20,
   },
   confirmBtnText: {

@@ -1,13 +1,15 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AddPostScreen() {
   const router = useRouter();
+  const inputColor = useThemeColor('text');
 
   // 예시 이미지 데이터 (최대 5개)
   const images = [
@@ -20,7 +22,7 @@ export default function AddPostScreen() {
 
   const moveToMetaDataScreen = () => {
     router.push('/addMetaData')
-  }
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -29,7 +31,7 @@ export default function AddPostScreen() {
         {/* 사진 */}
         <ThemedText style={styles.label} fontSize={18} fontWeight='600'>사진</ThemedText>
         <TouchableOpacity style={styles.addImageBox}>
-          <IconSymbol name='plus.circle.fill' color={Colors.primary} />
+          <MaterialCommunityIcons name='plus-circle' size={24} color={Colors.primary} />
         </TouchableOpacity>
 
         {/* 업로드된 이미지들 */}
@@ -42,7 +44,7 @@ export default function AddPostScreen() {
             <View key={img.id} style={styles.imageBox}>
               <Image source={{ uri: img.uri }} style={styles.image} />
               <TouchableOpacity style={styles.removeBtn}>
-                <IconSymbol name='xmark.circle.fill' color={Colors.grayC6} size={24} />
+                <MaterialCommunityIcons name='close-circle' color={Colors.grayC6} size={24} />
               </TouchableOpacity>
             </View>
           ))}
@@ -51,10 +53,11 @@ export default function AddPostScreen() {
         {/* 텍스트 입력 */}
         <ThemedText style={styles.label} fontSize={18} fontWeight='600'>텍스트 입력</ThemedText>
         <TextInput
-          style={styles.textArea}
+          style={[styles.textArea, {color: inputColor}]}
           placeholder="내용을 입력해주세요"
           placeholderTextColor={Colors.grayAD}
           multiline
+          textAlignVertical="top"
         />
 
         {/* 해시태그 */}
@@ -63,7 +66,7 @@ export default function AddPostScreen() {
         <View style={styles.hashtagInputRow}>
           <Text style={styles.hashtag}>#</Text>
           <TextInput
-            style={styles.hashtagInput}
+            style={[styles.hashtagInput, {color: inputColor}]}
             placeholder="띄어쓰기 없이 입력해주세요."
             placeholderTextColor={Colors.grayAD}
           />
@@ -104,7 +107,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 4,
-    backgroundColor: Colors.grayF9,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -140,7 +143,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1,
     borderColor: Colors.grayED,
-    backgroundColor: Colors.grayF9,
+    backgroundColor: 'transparent',
     padding: 16,
     fontSize: 15,
     fontFamily: 'Pretendard-Regular',
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
   hashtagInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor:  Colors.grayF9,
+    backgroundColor: 'transparent',
     borderRadius: 4,
     borderWidth: 1,
     borderColor: Colors.grayED,
@@ -178,7 +181,7 @@ const styles = StyleSheet.create({
   hashtagItem: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: Colors.primary18,
+    backgroundColor: Colors.primary30,
     color: Colors.primary,
     fontFamily: 'Pretendard-Bold',
     fontSize: 15,
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     opacity: 1,
     marginHorizontal: 16,
-    marginBottom: 40,
+    marginBottom: 48,
     marginTop: 20,
   },
   nextBtnText: {

@@ -3,8 +3,13 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
+
+// 스플래시 스크린이 자동으로 숨겨지지 않도록 설정
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -17,7 +22,16 @@ export default function RootLayout() {
     'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.otf'),
   });
 
-  if (!loaded) return null;
+  useEffect(() => {
+    if (loaded) {
+      // 폰트 로딩이 완료되면 스플래시 스크린 숨기기
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) {
+    return null; // 스플래시 스크린이 계속 보여짐
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
