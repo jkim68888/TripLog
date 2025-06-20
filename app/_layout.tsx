@@ -55,6 +55,15 @@ export default function RootLayout() {
             headerTitleStyle: { fontFamily: 'Pretendard-SemiBold' },
           }}
         />
+        <Stack.Screen
+          name="(pages)/changeLocation"
+          options={{
+            title: '장소 변경',
+            headerBackTitle: 'back',
+            headerTintColor: headerTintColor,
+            headerTitleStyle: { fontFamily: 'Pretendard-SemiBold' },
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

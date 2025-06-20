@@ -201,6 +201,6 @@ const styles = StyleSheet.create({
   nextBtnText: {
     color: Colors.gray9,
     fontSize: 16,
-    fontFamily: 'Pretendard-Semibold'
+    fontFamily: 'Pretendard-SemiBold'
   },
 });

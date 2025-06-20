@@ -28,7 +28,7 @@ export default function AddMetaDataScreen() {
   }
 
   const moveToLocationScreen = () => {
-    // TODO: Implement location screen navigation
+    router.push('/changeLocation')
   }
 
   const formatDateTime = (date: Date) => {
@@ -62,7 +62,7 @@ export default function AddMetaDataScreen() {
         {/* 장소 */}
         <View style={styles.titleContainer}>
           <ThemedText fontSize={18} fontWeight='600'>사진의 장소</ThemedText>
-          <TouchableOpacity style={styles.changeButton}>
+          <TouchableOpacity style={styles.changeButton} onPress={moveToLocationScreen}>
             <MaterialCommunityIcons name='refresh' size={22} color={Colors.primary} />
             <ThemedText fontSize={16} fontWeight='500'>변경</ThemedText>
           </TouchableOpacity>
@@ -174,6 +174,6 @@ const styles = StyleSheet.create({
   confirmBtnText: {
     color: Colors.gray9,
     fontSize: 16,
-    fontFamily: 'Pretendard-Semibold'
+    fontFamily: 'Pretendard-SemiBold'
   },
 })
