@@ -38,7 +38,7 @@ export default function ChangeLocationScreen() {
 
       {/* 완료 버튼 */}
       <TouchableOpacity style={styles.confirmBtn} onPress={() => {router.back()}}>
-        <Text style={styles.confirmBtnText}>완료</Text>
+        <Text style={styles.confirmBtnText}>변경</Text>
       </TouchableOpacity>
     </ThemedView>
   );

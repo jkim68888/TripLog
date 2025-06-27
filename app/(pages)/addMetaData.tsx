@@ -2,6 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { usePostStore } from '@/stores/postStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -10,21 +11,14 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function AddMetaDataScreen() {
   const router = useRouter();
+  const { selectedImages, setSelectedImages } = usePostStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
   const inputColor = useThemeColor('text');
 
-  // 예시 이미지 데이터 (최대 5개)
-  const images = [
-    { uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb', id: 1 },
-    { uri: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca', id: 2 },
-    { uri: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429', id: 3 },
-    { uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb', id: 4 },
-    { uri: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429', id: 5 },
-  ];
-
   const moveToMainScreen = () => {
     router.push('/(tabs)')
+    setSelectedImages([])
   }
 
   const moveToLocationScreen = () => {
@@ -52,9 +46,9 @@ export default function AddMetaDataScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.imageRow}
           >
-          {images.map((img) => (
-            <View key={img.id} style={styles.imageBox}>
-              <Image source={{ uri: img.uri }} style={styles.image} />
+          {selectedImages.map((uri, index) => (
+            <View key={index} style={styles.imageBox}>
+              <Image source={{ uri: uri }} style={styles.image} />
             </View>
           ))}
         </ScrollView>

@@ -2,90 +2,178 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { usePostStore } from '@/stores/postStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AddPostScreen() {
   const router = useRouter();
   const inputColor = useThemeColor('text');
+  const { selectedImages, setSelectedImages } = usePostStore();
+  const [hashtagInput, setHashtagInput] = useState('');
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const isNavigatingForward = useRef(false);
 
-  // 예시 이미지 데이터 (최대 5개)
-  const images = [
-    { uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb', id: 1 },
-    { uri: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca', id: 2 },
-    { uri: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429', id: 3 },
-    { uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb', id: 4 },
-    { uri: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429', id: 5 },
-  ];
+  // 화면이 focus를 잃을 때 초기화
+  useFocusEffect(
+    useCallback(() => {
+      // 화면이 다시 포커스될 때 (뒤로 돌아왔을 때)
+      return () => {
+        // 화면을 떠날 때
+        if (!isNavigatingForward.current) {
+          setSelectedImages([]);
+        }
+        isNavigatingForward.current = false;
+      };
+    }, [])
+  );
 
   const moveToMetaDataScreen = () => {
     router.push('/addMetaData')
+    isNavigatingForward.current = true
+  };
+
+  const openGallery = async () => {
+    try {
+      // 권한 요청
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        alert('갤러리 접근 권한이 필요합니다.');
+        return;
+      }
+
+      // 갤러리 열기
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsMultipleSelection: true,
+        quality: 0.8,
+        aspect: [1, 1],
+      });
+
+      if (!result.canceled && result.assets) {
+        const imageUris = result.assets.map(asset => asset.uri);
+        setSelectedImages([...selectedImages, ...imageUris]);
+      }
+    } catch (error) {
+      console.error('갤러리 열기 에러:', error);
+    }
+  };
+
+  const handleRemoveBtn = (indexToRemove: number) => {
+    setSelectedImages(selectedImages.filter((_, index) => index !== indexToRemove));
+  }
+
+  const addHashtag = () => {
+    if (hashtagInput.trim() && !hashtags.includes(`#${hashtagInput.trim()}`)) {
+      setHashtags(prev => [...prev, `#${hashtagInput.trim()}`]);
+      setHashtagInput(''); // 입력 필드 초기화
+    }
+  };
+
+  const removeHashtag = (hashtagToRemove: string) => {
+    setHashtags(prev => prev.filter(tag => tag !== hashtagToRemove));
   };
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-        {/* 사진 */}
-        <ThemedText style={styles.label} fontSize={18} fontWeight='600'>사진</ThemedText>
-        <TouchableOpacity style={styles.addImageBox}>
-          <MaterialCommunityIcons name='plus-circle' size={24} color={Colors.primary} />
-        </TouchableOpacity>
-
-        {/* 업로드된 이미지들 */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.imageRow}
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior='height'
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 50}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled" // 키보드 외부 터치 시 키보드 유지
         >
-          {images.map((img) => (
-            <View key={img.id} style={styles.imageBox}>
-              <Image source={{ uri: img.uri }} style={styles.image} />
-              <TouchableOpacity style={styles.removeBtn}>
-                <MaterialCommunityIcons name='close-circle' color={Colors.grayC6} size={24} />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* 텍스트 입력 */}
-        <ThemedText style={styles.label} fontSize={18} fontWeight='600'>텍스트 입력</ThemedText>
-        <TextInput
-          style={[styles.textArea, {color: inputColor}]}
-          placeholder="내용을 입력해주세요"
-          placeholderTextColor={Colors.grayAD}
-          multiline
-          textAlignVertical="top"
-        />
-
-        {/* 해시태그 */}
-        <ThemedText style={styles.label} fontSize={18} fontWeight='600'>해시태그 #</ThemedText>
-
-        <View style={styles.hashtagInputRow}>
-          <Text style={styles.hashtag}>#</Text>
-          <TextInput
-            style={[styles.hashtagInput, {color: inputColor}]}
-            placeholder="띄어쓰기 없이 입력해주세요."
-            placeholderTextColor={Colors.grayAD}
-          />
-          <TouchableOpacity>
-            <Text style={styles.hashtag}>추가</Text>
+          {/* 사진 */}
+          <ThemedText style={styles.label} fontSize={18} fontWeight='600'>사진</ThemedText>
+          <TouchableOpacity style={styles.addImageBox} onPress={openGallery}>
+            <MaterialCommunityIcons name='plus-circle' size={24} color={Colors.primary} />
           </TouchableOpacity>
-        </View>
 
-        <View style={styles.hashtagRow}>
-          <Text style={styles.hashtagItem}>#여행</Text>
-          <Text style={styles.hashtagItem}>#카페</Text>
-          <Text style={styles.hashtagItem}>#날씨</Text>
-        </View>
+          {/* 업로드된 이미지들 */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.imageRow}
+          >
+            {selectedImages.map((uri, index) => (
+              <View key={index} style={styles.imageBox}>
+                <Image source={{ uri }} style={styles.image} />
+                <TouchableOpacity 
+                  style={styles.removeBtn} 
+                  onPress={() => handleRemoveBtn(index)}
+                >
+                  <MaterialCommunityIcons name='close-circle' color={Colors.grayC6} size={24} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
 
-      </ScrollView>
+          {/* 텍스트 입력 */}
+          <ThemedText style={styles.label} fontSize={18} fontWeight='600'>텍스트 입력</ThemedText>
+          <TextInput
+            style={[styles.textArea, {color: inputColor}]}
+            placeholder="내용을 입력해주세요"
+            placeholderTextColor={Colors.grayAD}
+            multiline
+            textAlignVertical="top"
+          />
 
-      {/* 다음 버튼 */}
-      <TouchableOpacity style={styles.nextBtn} onPress={moveToMetaDataScreen}>
-        <Text style={styles.nextBtnText}>다음</Text>
+          {/* 해시태그 */}
+          <ThemedText style={styles.label} fontSize={18} fontWeight='600'>해시태그 #</ThemedText>
+
+          <View style={styles.hashtagInputRow}>
+            <Text style={styles.hashtag}>#</Text>
+            <TextInput
+              style={[styles.hashtagInput, {color: inputColor}]}
+              placeholder="띄어쓰기 없이 입력해주세요."
+              placeholderTextColor={Colors.grayAD}
+              value={hashtagInput}
+              onChangeText={setHashtagInput}
+              onSubmitEditing={addHashtag}
+            />
+            <TouchableOpacity onPress={addHashtag}>
+              <Text style={styles.hashtag}>추가</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.hashtagRow}>
+            {hashtags.map((tag, index) => (
+              <TouchableOpacity 
+                key={index} 
+                style={styles.hashtagItemContainer}
+                onPress={() => removeHashtag(tag)}
+              >
+                <Text style={styles.hashtagItem}>{tag}</Text>
+                <MaterialCommunityIcons name="close" size={16} color={Colors.primary} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <TouchableOpacity 
+        style={[
+          styles.nextBtn,
+          {backgroundColor: selectedImages.length > 0 ? Colors.primary : Colors.grayC6}
+        ]} 
+        onPress={moveToMetaDataScreen}
+      >
+        <Text 
+          style={[
+            styles.nextBtnText,
+            {color: selectedImages.length > 0 ? Colors.white : Colors.gray6}
+          ]}
+        >
+          다음
+        </Text>
       </TouchableOpacity>
     </ThemedView>
   );
@@ -94,6 +182,10 @@ export default function AddPostScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+    paddingBottom: 20,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -175,20 +267,26 @@ const styles = StyleSheet.create({
   hashtagRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 8,
-    marginTop: 8
+    marginTop: 10
   },
-  hashtagItem: {
+  hashtagItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: Colors.primary30,
+    borderRadius: 8,
+    gap: 4,
+  },
+  hashtagItem: {
     color: Colors.primary,
     fontFamily: 'Pretendard-Bold',
     fontSize: 15,
     borderRadius: 10,
   },
   nextBtn: {
-    backgroundColor: Colors.grayC6,
     borderRadius: 24,
     height: 48,
     justifyContent: 'center',
@@ -199,7 +297,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   nextBtnText: {
-    color: Colors.gray9,
     fontSize: 16,
     fontFamily: 'Pretendard-SemiBold'
   },
