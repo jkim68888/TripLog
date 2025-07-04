@@ -3,6 +3,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { usePostStore } from '@/stores/postStore';
+import { formatDateTime } from '@/utils/dateTimeUtil';
+import { getLocationText } from '@/utils/locationUtil';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -53,11 +55,31 @@ export default function AddPostScreen() {
         allowsMultipleSelection: true,
         quality: 0.8,
         aspect: [1, 1],
+        exif: true,
       });
 
       if (!result.canceled && result.assets) {
-        const imageUris = result.assets.map(asset => asset.uri);
-        setSelectedImages([...selectedImages, ...imageUris]);
+        const newImages = result.assets.map(async asset => ({
+          uri: asset.uri,
+          location: {
+            latitude: asset.exif?.GPSLatitude,
+            longitude: asset.exif?.GPSLongitude,
+            text: await getLocationText(
+              asset.exif?.GPSLatitude,
+              asset.exif?.GPSLongitude,
+            )
+          },
+          date: asset.exif?.GPSDateStamp,
+          time: asset.exif?.GPSTimeStamp,
+          creationTime: asset.exif?.GPSDateStamp != undefined && 
+                        asset.exif?.GPSTimeStamp != undefined ? 
+                          formatDateTime(asset.exif?.GPSDateStamp) :
+                          undefined,
+          filename: asset.fileName ? asset.fileName : `temp-filename-${Date.now()}`,
+        }));
+        
+        const resolvedImages = await Promise.all(newImages); // 모든 이미지 처리가 완료될 때까지 기다림
+        setSelectedImages([...selectedImages, ...resolvedImages]);
       }
     } catch (error) {
       console.error('갤러리 열기 에러:', error);
@@ -89,7 +111,7 @@ export default function AddPostScreen() {
         <ScrollView 
           contentContainerStyle={styles.scrollContent} 
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled" // 키보드 외부 터치 시 키보드 유지
+          keyboardShouldPersistTaps="handled" 
         >
           {/* 사진 */}
           <ThemedText style={styles.label} fontSize={18} fontWeight='600'>사진</ThemedText>
@@ -103,9 +125,9 @@ export default function AddPostScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.imageRow}
           >
-            {selectedImages.map((uri, index) => (
+            {selectedImages.map((img, index) => (
               <View key={index} style={styles.imageBox}>
-                <Image source={{ uri }} style={styles.image} />
+                <Image source={{ uri: img.uri }} style={styles.image} />
                 <TouchableOpacity 
                   style={styles.removeBtn} 
                   onPress={() => handleRemoveBtn(index)}
@@ -301,3 +323,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-SemiBold'
   },
 });
+

@@ -1,7 +1,6 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { useThemeColor } from '@/hooks/useThemeColor';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -10,7 +9,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ChangeLocationScreen() {
   const router = useRouter();
-  const inputColor = useThemeColor('text');
   const windowHeight = Dimensions.get('window').height;
   const insets = useSafeAreaInsets();
   const availableHeight = windowHeight - insets.top - insets.bottom
