@@ -3,7 +3,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { usePostStore } from '@/stores/postStore';
-import { formatDateTime } from '@/utils/dateTimeUtil';
+import { combineGPSDateTime, formatDateTime } from '@/utils/dateTimeUtil';
 import { getLocationText } from '@/utils/locationUtil';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -15,10 +15,17 @@ import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, Te
 export default function AddPostScreen() {
   const router = useRouter();
   const inputColor = useThemeColor('text');
-  const { selectedImages, setSelectedImages } = usePostStore();
   const [hashtagInput, setHashtagInput] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const isNavigatingForward = useRef(false);
+
+  const { 
+    selectedImages, 
+    setSelectedImages, 
+    resetCurrentPost, 
+    setPostContent, 
+    setPostHashtags 
+  } = usePostStore();
 
   // 화면이 focus를 잃을 때 초기화
   useFocusEffect(
@@ -27,7 +34,7 @@ export default function AddPostScreen() {
       return () => {
         // 화면을 떠날 때
         if (!isNavigatingForward.current) {
-          setSelectedImages([]);
+          resetCurrentPost;
         }
         isNavigatingForward.current = false;
       };
@@ -35,6 +42,7 @@ export default function AddPostScreen() {
   );
 
   const moveToMetaDataScreen = () => {
+    setPostHashtags(hashtags)
     router.push('/addMetaData')
     isNavigatingForward.current = true
   };
@@ -73,7 +81,13 @@ export default function AddPostScreen() {
           time: asset.exif?.GPSTimeStamp,
           creationTime: asset.exif?.GPSDateStamp != undefined && 
                         asset.exif?.GPSTimeStamp != undefined ? 
-                          formatDateTime(asset.exif?.GPSDateStamp) :
+                          (() => {
+                            const combinedDate = combineGPSDateTime(
+                              asset.exif?.GPSDateStamp, 
+                              asset.exif?.GPSTimeStamp
+                            )
+                            return combinedDate ? formatDateTime(combinedDate) : undefined
+                          })() :
                           undefined,
           filename: asset.fileName ? asset.fileName : `temp-filename-${Date.now()}`,
         }));
@@ -146,6 +160,7 @@ export default function AddPostScreen() {
             placeholderTextColor={Colors.grayAD}
             multiline
             textAlignVertical="top"
+            onChangeText={(text) => setPostContent(text)}
           />
 
           {/* 해시태그 */}

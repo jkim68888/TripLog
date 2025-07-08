@@ -1,17 +1,24 @@
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { usePostStore } from '@/stores/postStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
   const router = useRouter()
   const inputColor = useThemeColor('text')
+  const { posts } = usePostStore()
 
   const moveToAddPostScreen = () => {
     router.push('/addPost')
   }
+
+  useEffect(() => {
+    console.log(JSON.stringify(posts))
+  }, [posts])
 
   return (
   <ThemedView style={styles.root}>

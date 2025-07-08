@@ -12,7 +12,6 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function AddMetaDataScreen() {
   const router = useRouter();
-  const { selectedImages, setSelectedImages } = usePostStore();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [locationText, setLocationText] = useState('');
   const [creationTime, setCreationTime] = useState('');
@@ -21,6 +20,14 @@ export default function AddMetaDataScreen() {
   const inputColor = useThemeColor('text');
   const flatListRef = useRef<FlatList>(null);
   const windowWidth = Dimensions.get('window').width;
+
+  const { 
+    selectedImages,
+    currentPost, 
+    setSelectedImages,
+    addPost, 
+    resetCurrentPost 
+  } = usePostStore();
 
   // 페이지 변경 시 호출
   const onViewableItemsChanged = ({ viewableItems }: any) => {
@@ -94,14 +101,20 @@ export default function AddMetaDataScreen() {
     ))
   }
 
-  const moveToMainScreen = () => {
-    router.push('/(tabs)')
-    setSelectedImages([])
-  }
-
   const moveToLocationScreen = () => {
     router.push('/changeLocation')
   }
+
+  const handleSubmit = () => {
+    const finalPost = {
+      ...currentPost,
+      images: selectedImages, 
+      creationDate: new Date()
+    };
+    addPost(finalPost);
+    resetCurrentPost(); // 초기화
+    router.push('/(tabs)');
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -172,7 +185,7 @@ export default function AddMetaDataScreen() {
       </ScrollView>
 
       {/* 등록 버튼 */}
-      <TouchableOpacity style={styles.confirmBtn} onPress={moveToMainScreen}>
+      <TouchableOpacity style={styles.confirmBtn} onPress={handleSubmit}>
         <Text style={styles.confirmBtnText}>등록</Text>
       </TouchableOpacity>
 
