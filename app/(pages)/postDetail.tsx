@@ -6,11 +6,11 @@ import { formatDateTime } from '@/utils/dateTimeUtil';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { Dimensions, FlatList, Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, FlatList, Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function PostDetailScreen() {
   const { postId } = useLocalSearchParams();
-  const { posts } = usePostStore();
+  const { posts, deletePost } = usePostStore();
   const post = posts.find(p => p.id === postId);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -19,6 +19,21 @@ export default function PostDetailScreen() {
       setCurrentIndex(viewableItems[0].index);
     }
   };
+
+  const handlePostDelete = () => {
+    Alert.alert('게시물을 정말 삭제 하시겠습니까?', '', [
+      {
+        text: '취소',
+        style: 'cancel',
+      },
+      {
+        text: '확인',
+        onPress: () => {
+          deletePost(postId.toString());
+        },
+      }
+    ])
+  }
 
   if (!post) {
     return <ThemedText fontSize={16}>포스트를 찾을 수 없습니다.</ThemedText>;
@@ -94,7 +109,7 @@ export default function PostDetailScreen() {
               <TouchableOpacity>
                 <MaterialCommunityIcons name="bookmark-outline" size={24} color={Colors.grayAD} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handlePostDelete}>
                 <MaterialCommunityIcons name="trash-can-outline" size={24} color={Colors.grayAD} />
               </TouchableOpacity>
             </View>
@@ -102,9 +117,9 @@ export default function PostDetailScreen() {
 
           <View style={styles.hashtagContainer}>
             {post.hashtags.map((tag, index) => (
-              <TouchableOpacity key={index} style={styles.hashtagButton}>
+              <View key={index} style={styles.hashtagButton}>
                 <ThemedText style={{color: Colors.primary}} fontSize={14} fontWeight='500'>{tag}</ThemedText>
-              </TouchableOpacity>
+              </View>
             ))}
           </View>
 
