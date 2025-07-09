@@ -64,7 +64,7 @@ export const usePostStore = create<PostStore>((set) => ({
   resetCurrentPost: () => set({
     currentPost: { 
       ...initialPostData, 
-      id: Date.now().toString(), // 새로운 ID 생성
+      id: Date.now().toString(), // 새로운 ID 생성,
       creationDate: new Date() 
     },
     selectedImages: []

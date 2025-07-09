@@ -34,7 +34,7 @@ export default function AddPostScreen() {
       return () => {
         // 화면을 떠날 때
         if (!isNavigatingForward.current) {
-          resetCurrentPost;
+          resetCurrentPost();
         }
         isNavigatingForward.current = false;
       };

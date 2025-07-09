@@ -64,6 +64,15 @@ export default function RootLayout() {
             headerTitleStyle: { fontFamily: 'Pretendard-SemiBold' },
           }}
         />
+        <Stack.Screen
+          name="(pages)/postDetail"
+          options={{
+            title: '게시물 상세',
+            headerBackTitle: 'back',
+            headerTintColor: headerTintColor,
+            headerTitleStyle: { fontFamily: 'Pretendard-SemiBold' },
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

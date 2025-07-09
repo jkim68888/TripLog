@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     height: 52,
   },
   confirmBtn: {
-    backgroundColor: Colors.grayC6,
+    backgroundColor: Colors.primary,
     borderRadius: 24,
     height: 48,
     justifyContent: 'center',
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   confirmBtnText: {
-    color: Colors.gray9,
+    color: Colors.white,
     fontSize: 16,
     fontFamily: 'Pretendard-SemiBold'
   },

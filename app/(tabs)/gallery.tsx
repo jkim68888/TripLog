@@ -1,21 +1,30 @@
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { usePostStore } from '@/stores/postStore';
+import { PostData, usePostStore } from '@/stores/postStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Dimensions, FlatList, Image, Platform, SafeAreaView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function GalleryScreen() {
+  const router = useRouter()
   const inputColor = useThemeColor('text');
   const screenWidth = Dimensions.get('window').width;
-  const itemSize = (screenWidth - 16) / 3; // 3열, 간격 8px씩
+  const itemSize = (screenWidth - 8) / 3; // 3열, 간격 4px씩
   const { posts } = usePostStore();
 
-  const renderItem = ({ item }: { item: any }) => {
+  const moveToPostDetail = (id: string) => {
+    router.push({
+      pathname: '/(pages)/postDetail',
+      params: { postId: id }
+    })
+  }
+
+  const renderItem = ({ item }: { item: PostData }) => {
     return (
       <TouchableOpacity 
         style={[styles.imageContainer, { width: itemSize, height: itemSize }]}
-        onPress={() => {}}
+        onPress={() => moveToPostDetail(item.id)}
       >
         <Image source={{ uri: item.images[0].uri }} style={styles.image} />
         
@@ -115,8 +124,9 @@ const styles = StyleSheet.create({
     }),
   },
   row: {
-    justifyContent: 'space-between',
-    marginBottom: 2,
+    justifyContent: 'flex-start',
+    gap: 4,
+    marginBottom: 4,
   },
   imageContainer: {
     position: 'relative',

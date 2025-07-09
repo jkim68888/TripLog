@@ -1,5 +1,5 @@
 import { HapticTab } from '@/components/HapticTab';
-import TabBarBackground from '@/components/ui/TabBarBackground';
+import TabBarBackground from '@/components/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { TabItems } from '@/constants/TabItems';
 import { useThemeColor } from '@/hooks/useThemeColor';
