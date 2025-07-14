@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.jihyunkim.triplog"
+      "bundleIdentifier": "com.jihyunkim.triplog",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "현재 위치 정보를 표시하기 위해 위치 권한이 필요합니다.",
+        "NSPhotoLibraryUsageDescription": "사진을 가져오기 위해 갤러리 접근 권한이 필요합니다."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +22,14 @@
         "backgroundColor": "#8FC8F1"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.jihyunkim.triplog"
+      "package": "com.jihyunkim.triplog",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES",
+        "ACCESS_MEDIA_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
