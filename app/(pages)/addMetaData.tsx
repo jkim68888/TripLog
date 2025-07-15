@@ -33,11 +33,10 @@ export default function AddMetaDataScreen() {
   const onViewableItemsChanged = ({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
       const index = viewableItems[0].index
-      console.log('현재 페이지: ', index)
       setCurrentImageIndex(index)
 
       const currentImage = selectedImages[index]
-      console.log('현재 이미지 데이터:', currentImage)
+      console.log('현재 페이지: ', index, ', 이미지 데이터:', currentImage)
 
       // 초기화
       setCreationTime('');
@@ -45,41 +44,9 @@ export default function AddMetaDataScreen() {
 
       if (currentImage) {
         // 날짜 업데이트
-        if (currentImage.creationTime !== undefined) {
-          setCreationTime(currentImage.creationTime)
-          setSelectedImages(selectedImages.map((img, idx) =>
-            idx === currentImageIndex
-              ? {
-                ...img,
-                creationTime: currentImage.creationTime
-              }
-              : img
-          ))
-        } else {
-          console.log('날짜 정보 없음');
-        }
-        
+        currentImage.creationTime?.text && setCreationTime(currentImage.creationTime.text);
         // 위치 업데이트
-        if (currentImage.location && 
-            currentImage.location.latitude !== undefined && 
-            currentImage.location.longitude !== undefined &&
-            currentImage.location.text !== undefined) {
-          setLocationText(currentImage.location.text)
-          setSelectedImages(selectedImages.map((img, idx) => 
-            idx === currentImageIndex 
-              ? {
-                  ...img, 
-                  location: {
-                    latitude: img.location?.latitude,
-                    longitude: img.location?.longitude,
-                    text: img.location?.text
-                  }
-                }
-              : img
-          ));
-        } else {
-          console.log('위치 정보 없음');
-        }
+        currentImage.location?.text && setLocationText(currentImage.location.text);
       }
     }
   };
@@ -94,8 +61,10 @@ export default function AddMetaDataScreen() {
       idx === currentImageIndex
         ? {
           ...img,
-          date: date,
-          creationTime: formatDateTime(date)
+          creationTime: {
+            date: date,
+            text: formatDateTime(date)
+          }
         }
         : img
     ))
@@ -145,9 +114,9 @@ export default function AddMetaDataScreen() {
             
           {/* 페이지 인디케이터 */}
           <View style={styles.pageIndicator}>
-            <ThemedText fontSize={14} fontWeight='500'>
+            <Text style={styles.indicatorText}>
               {currentImageIndex + 1} / {selectedImages.length}
-            </ThemedText>
+            </Text>
           </View>
         </View>
 
@@ -221,6 +190,11 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
     marginRight: 8,
+  },
+  indicatorText: {
+    color: Colors.white,
+    fontSize: 14,
+    fontFamily: 'Pretendard-Medium'
   },
   titleContainer: {
     flexDirection: 'row',

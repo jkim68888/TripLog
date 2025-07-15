@@ -51,54 +51,60 @@ export default function AddPostScreen() {
     try {
       // 권한 요청
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+        
       if (permissionResult.granted === false) {
         alert('갤러리 접근 권한이 필요합니다.');
         return;
       }
 
-      // 갤러리 열기
+      // ImagePicker로 이미지 선택
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: 'images',
         allowsMultipleSelection: true,
         quality: 0.8,
-        aspect: [1, 1],
         exif: true,
       });
 
       if (!result.canceled && result.assets) {
-        const newImages = result.assets.map(async asset => ({
-          uri: asset.uri,
-          location: {
-            latitude: asset.exif?.GPSLatitude,
-            longitude: asset.exif?.GPSLongitude,
-            text: await getLocationText(
-              asset.exif?.GPSLatitude,
-              asset.exif?.GPSLongitude,
-            )
-          },
-          date: asset.exif?.GPSDateStamp,
-          time: asset.exif?.GPSTimeStamp,
-          creationTime: asset.exif?.GPSDateStamp != undefined && 
-                        asset.exif?.GPSTimeStamp != undefined ? 
-                          (() => {
-                            const combinedDate = combineGPSDateTime(
-                              asset.exif?.GPSDateStamp, 
-                              asset.exif?.GPSTimeStamp
-                            )
-                            return combinedDate ? formatDateTime(combinedDate) : undefined
-                          })() :
-                          undefined,
-          filename: asset.fileName ? asset.fileName : `temp-filename-${Date.now()}`,
-        }));
-        
-        const resolvedImages = await Promise.all(newImages); // 모든 이미지 처리가 완료될 때까지 기다림
-        setSelectedImages([...selectedImages, ...resolvedImages]);
+        const newImages = await Promise.all(
+          result.assets.map(async (asset) => {
+            // 이미지 메타데이터 가져오기
+            if (asset.exif) {
+              const lat = asset.exif.GPSLatitude
+              const lng = asset.exif.GPSLongitude
+              const date = combineGPSDateTime(
+                asset.exif.GPSDateStamp,
+                asset.exif.GPSTimeStamp,
+              )
+
+              return {
+                uri: asset.uri,
+                location: lat && lng ? {
+                  latitude: lat,
+                  longitude: lng,
+                  text: await getLocationText(lat, lng)
+                } : null,
+                creationTime: asset.exif?.GPSDateStamp && asset.exif?.GPSTimeStamp ? {
+                  date: date,
+                  text: date && formatDateTime(date)
+                } : null,
+                filename: asset.fileName,
+              }
+            } else {
+              return {
+                uri: asset.uri,
+                filename: asset.fileName,
+              }
+            }
+          })
+        );
+
+        setSelectedImages([...selectedImages, ...newImages])
       }
     } catch (error) {
       console.error('갤러리 열기 에러:', error);
     }
-  };
+  }
 
   const handleRemoveBtn = (indexToRemove: number) => {
     setSelectedImages(selectedImages.filter((_, index) => index !== indexToRemove));
@@ -201,6 +207,7 @@ export default function AddPostScreen() {
           styles.nextBtn,
           {backgroundColor: selectedImages.length > 0 ? Colors.primary : Colors.grayC6}
         ]} 
+        disabled={selectedImages.length <= 0}
         onPress={moveToMetaDataScreen}
       >
         <Text 

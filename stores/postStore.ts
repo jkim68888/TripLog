@@ -4,14 +4,15 @@ import { create } from 'zustand';
 interface ImageWithMetadata {
   uri?: string;
   location?: {
-    latitude: number | undefined;
-    longitude: number | undefined;
-    text?: string | undefined;
-  };
-  date?: Date | undefined;
-  time?: Date | undefined;
-  creationTime?: string | undefined;
-  filename?: string;
+    latitude: number;
+    longitude: number
+    text: string | null;
+  } | null;
+  creationTime?: {
+    date: Date | null;
+    text: string | null;
+  } | null;
+  filename?: string | null | undefined;
 }
 
 interface PostData {

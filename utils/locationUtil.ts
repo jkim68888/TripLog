@@ -1,24 +1,31 @@
 import * as Location from 'expo-location';
-import * as MediaLibrary from 'expo-media-library';
+import { Platform } from 'react-native';
 
 // 위치 정보를 텍스트로 변환
 export const getLocationText = async (latitude: number, longitude: number) => {
   try {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    
+    // 위치 권한 요청
+    const { status } = await Location.requestForegroundPermissionsAsync();
+
     if (status !== 'granted') {
-      console.log('미디어 권한이 거부되었습니다.');
-      return undefined;
+      console.log('위치 권한이 거부되었습니다.');
+      return null;
     }
 
     const result = await Location.reverseGeocodeAsync({ latitude, longitude });
 
     if (result.length > 0) {
       const address = result[0];
-      return `${address.city || ''} ${address.district || ''} ${address.street || ''}`.trim();
+
+      if (Platform.OS === 'android') {
+        return address.formattedAddress
+      } else {
+        return `${address.city || ''} ${address.district || ''} ${address.street || ''}`.trim();
+      }
     }
   } catch (error) {
     console.log('위치 변환 오류:', error);
+    return null;
   }
-  return undefined;
+  return null;
 };

@@ -26,7 +26,7 @@ export const combineGPSDateTime = (dateStamp: string, timeStamp: string): Date |
       parseInt(second)
     );
   } catch (error) {
-    console.error('GPS 날짜/시간 파싱 오류:', error);
+    console.log('GPS 날짜/시간 파싱 오류:', error);
     return null;
   }
 };

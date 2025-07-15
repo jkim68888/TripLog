@@ -53,7 +53,7 @@ export default function PostDetailScreen() {
                 style={styles.overlayIcon}
               />
               <ThemedText style={{color: Colors.white}} fontSize={14} fontWeight='600'>
-                {post.images[currentIndex]?.creationTime || '날짜 정보 없음'}
+                {post.images[currentIndex]?.creationTime?.text || '날짜 정보 없음'}
               </ThemedText>
             </View>
             <View style={styles.overlayRow}>
