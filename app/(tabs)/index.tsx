@@ -6,6 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import MapView from 'react-native-maps';
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -43,6 +44,18 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
+    <View style={styles.mapContainer}>
+      <MapView
+        style={styles.map}
+        showsUserLocation={true}
+        initialRegion={{
+          latitude: 37.5665,
+          longitude: 126.9780,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}
+      />
+      </View>
   </ThemedView>
   );
 }
@@ -50,7 +63,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: 'lightblue'
+  },
+  mapContainer: {
+    flex: 1,
+  },
+  map: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

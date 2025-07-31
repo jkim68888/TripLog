@@ -15,7 +15,7 @@
         "NSLocationWhenInUseUsageDescription": "현재 위치 정보를 표시하기 위해 위치 권한이 필요합니다.",
         "NSPhotoLibraryUsageDescription": "사진을 가져오기 위해 갤러리 접근 권한이 필요합니다.",
         "config": {
-          "googleMapsApiKey": "$(iOS_GOOGLE_MAPS_API_KEY)"
+          "googleMapsApiKey": "AIzaSyCNgVKX2qmfOBRbViMwGi6YWWq2UaYIqfQ"
         }
       }
     },
@@ -35,7 +35,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "$(ANDROID_GOOGLE_MAPS_API_KEY)"
+          "apiKey": "AIzaSyBqW8rc3YW248Pvb40acdFDzuFK9WNQB8s"
         }
       }
     },
@@ -59,6 +59,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8516e699-c9db-4d5d-bcaa-433170233e9e"
+      }
     }
   }
 }

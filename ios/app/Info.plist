@@ -88,5 +88,10 @@
     <string>Automatic</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+    <key>config</key>
+    <dict>
+      <key>googleMapsApiKey</key>
+      <string>AIzaSyCNgVKX2qmfOBRbViMwGi6YWWq2UaYIqfQ</string>
+    </dict>
   </dict>
 </plist>
