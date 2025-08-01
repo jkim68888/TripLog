@@ -91,17 +91,17 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: Platform.select({
       ios: 0,
-      android: 24
+      android: 32
     }),
   },
   searchBox: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 10,
     paddingHorizontal: 16,
     borderRadius: 40,
     borderWidth: 1,
-    width: 252,
     height: 40,
     borderColor: Colors.primary
   },

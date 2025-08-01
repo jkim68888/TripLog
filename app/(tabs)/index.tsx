@@ -64,12 +64,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  mapContainer: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -77,7 +71,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: Platform.select({
       ios: 0,
-      android: 24
+      android: 32
     }),
   },
   searchBox: {
@@ -116,5 +110,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Pretendard-SemiBold',
     color: Colors.white
-  }
+  },
+  mapContainer: {
+    flex: 1,
+  },
+  map: {
+    flex: 1,
+  },
 });
