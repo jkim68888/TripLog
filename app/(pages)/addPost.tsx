@@ -8,9 +8,10 @@ import { getLocationText } from '@/utils/locationUtil';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, PermissionsAndroid, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AddPostScreen() {
   const router = useRouter();
@@ -47,6 +48,68 @@ export default function AddPostScreen() {
     isNavigatingForward.current = true
   };
 
+  // Android 미디어 위치 권한 요청
+  const requestMediaLocationPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION,
+          {
+            title: '미디어 위치 권한',
+            message: '사진의 위치 정보를 읽기 위해 권한이 필요합니다.',
+            buttonNeutral: '나중에',
+            buttonNegative: '거부',
+            buttonPositive: '승인',
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn('Media location permission error:', err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Android - ImagePicker asset에서 실제 미디어 라이브러리 asset 찾기
+  const findMediaLibraryAsset = async (pickerAsset: ImagePicker.ImagePickerAsset) => {
+    try {
+      // 파일명으로 검색 (확장자 제외)
+      if (pickerAsset.fileName) {
+        const baseFileName = pickerAsset.fileName.replace(/\.[^/.]+$/, "");
+        const assets = await MediaLibrary.getAssetsAsync({
+          mediaType: 'photo',
+          first: 100,
+          sortBy: 'creationTime'
+        });
+        
+        const matchingAsset = assets.assets.find(asset => 
+          asset.filename.includes(baseFileName) || 
+          Math.abs(asset.width - pickerAsset.width) === 0 && 
+          Math.abs(asset.height - pickerAsset.height) === 0
+        );
+        
+        return matchingAsset;
+      }
+      
+      // 파일명이 없으면 크기와 생성시간으로 매칭
+      const assets = await MediaLibrary.getAssetsAsync({
+        mediaType: 'photo',
+        first: 50,
+        sortBy: 'creationTime'
+      });
+      
+      return assets.assets.find(asset => 
+        asset.width === pickerAsset.width && 
+        asset.height === pickerAsset.height
+      );
+    } catch (error) {
+      console.error('미디어 라이브러리 asset 찾기 실패:', error);
+      return null;
+    }
+  };
+
+
   const openGallery = async () => {
     try {
       // 권한 요청
@@ -55,6 +118,17 @@ export default function AddPostScreen() {
       if (permissionResult.granted === false) {
         alert('갤러리 접근 권한이 필요합니다.');
         return;
+      }
+
+      if (Platform.OS === 'android') {
+        const hasMediaLocationPermission = await requestMediaLocationPermission();
+        
+        if (!hasMediaLocationPermission) {
+          Alert.alert(
+            '권한 안내', 
+            '위치 정보가 포함된 사진을 읽기 위해서는 미디어 위치 권한이 필요합니다. 위치 정보 없이 사진만 가져오겠습니다.'
+          );
+        }
       }
 
       // ImagePicker로 이미지 선택
@@ -68,32 +142,65 @@ export default function AddPostScreen() {
       if (!result.canceled && result.assets) {
         const newImages = await Promise.all(
           result.assets.map(async (asset) => {
-            // 이미지 메타데이터 가져오기
-            if (asset.exif) {
-              const lat = asset.exif.GPSLatitude
-              const lng = asset.exif.GPSLongitude
-              const date = combineGPSDateTime(
-                asset.exif.GPSDateStamp,
-                asset.exif.GPSTimeStamp,
-              )
 
-              return {
-                uri: asset.uri,
-                location: lat && lng ? {
-                  latitude: lat,
-                  longitude: lng,
-                  text: await getLocationText(lat, lng)
-                } : null,
-                creationTime: asset.exif?.GPSDateStamp && asset.exif?.GPSTimeStamp ? {
-                  date: date,
-                  text: date && formatDateTime(date)
-                } : null,
-                filename: asset.fileName,
+            if (Platform.OS === 'android') {
+              // Android 이미지 메타데이터 가져오기
+              const androidMediaAsset = await findMediaLibraryAsset(asset)
+
+              if (androidMediaAsset) {
+                const assetInfo = await MediaLibrary.getAssetInfoAsync(androidMediaAsset)
+
+                const lat = assetInfo.location?.latitude
+                const lng = assetInfo.location?.longitude
+                const date = new Date(assetInfo.creationTime)
+
+                return {
+                  uri: asset.uri,
+                  location: lat && lng ? {
+                    latitude: lat,
+                    longitude: lng,
+                    text: await getLocationText(lat, lng)
+                  } : null,
+                  creationTime: asset.exif?.GPSDateStamp && asset.exif?.GPSTimeStamp ? {
+                    date: date,
+                    text: date && formatDateTime(date)
+                  } : null,
+                  filename: asset.fileName,
+                }
+              } else {
+                return {
+                  uri: asset.uri,
+                  filename: asset.fileName,
+                }
               }
             } else {
-              return {
-                uri: asset.uri,
-                filename: asset.fileName,
+              // iOS 이미지 메타데이터 가져오기
+              if (asset.exif) {
+                const lat = asset.exif.GPSLatitude
+                const lng = asset.exif.GPSLongitude
+                const date = combineGPSDateTime(
+                  asset.exif.GPSDateStamp,
+                  asset.exif.GPSTimeStamp,
+                )
+
+                return {
+                  uri: asset.uri,
+                  location: lat && lng ? {
+                    latitude: lat,
+                    longitude: lng,
+                    text: await getLocationText(lat, lng)
+                  } : null,
+                  creationTime: asset.exif?.GPSDateStamp && asset.exif?.GPSTimeStamp ? {
+                    date: date,
+                    text: date && formatDateTime(date)
+                  } : null,
+                  filename: asset.fileName,
+                }
+              } else {
+                return {
+                  uri: asset.uri,
+                  filename: asset.fileName,
+                }
               }
             }
           })

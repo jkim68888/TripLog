@@ -3,27 +3,75 @@ import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { usePostStore } from '@/stores/postStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import MapView from 'react-native-maps';
+import * as Location from 'expo-location';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Alert, Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker, Region } from 'react-native-maps';
 
 export default function HomeScreen() {
   const router = useRouter()
   const inputColor = useThemeColor('text')
   const { posts } = usePostStore()
+  const [currentRegion, setCurrentRegion] = useState<Region>({
+    latitude: 37.5665,
+    longitude: 126.9780,
+    latitudeDelta: 10,
+    longitudeDelta: 10,
+  });
+
+  const getCurrentLocation = async () => {
+    try {
+      // 위치 권한 요청
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '위치 권한이 필요합니다.');
+        return;
+      }
+      
+      // 현재 위치 가져오기
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const { latitude, longitude } = location.coords;
+      
+      // 지도 영역 업데이트
+      setCurrentRegion({
+        latitude,
+        longitude,
+        latitudeDelta: 0.01, // 더 확대된 뷰로 변경
+        longitudeDelta: 0.01,
+      });
+
+      console.log("현재 위치 가져오기 완료")
+    } catch (error) {
+      console.error('위치를 가져오는데 실패했습니다:', error);
+      Alert.alert('오류', '현재 위치를 가져올 수 없습니다');
+    }
+  };
+
+  // 화면이 포커스될 때마다 현재 위치 가져오기
+  useFocusEffect(
+    useCallback(() => {
+      console.log('화면이 포커스됨 - 현재 위치 가져오기 시작');
+      getCurrentLocation();
+    }, [])
+  );
+
+  const moveToCurrentLocation = () => {
+    console.log('현위치 버튼 클릭됨'); // 버튼 클릭 로그 추가
+    getCurrentLocation();
+  };
 
   const moveToAddPostScreen = () => {
     router.push('/addPost')
-  }
-
-  useEffect(() => {
-    console.log(JSON.stringify(posts))
-  }, [posts])
+  };
 
   return (
   <ThemedView style={styles.root}>
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         {/* 서치바 */}
         <ThemedView style={styles.searchBox}>
@@ -43,25 +91,56 @@ export default function HomeScreen() {
           <Text style={styles.addButtonText}>여행 추가하기</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
-    <View style={styles.mapContainer}>
-      <MapView
-        style={styles.map}
-        showsUserLocation={true}
-        initialRegion={{
-          latitude: 37.5665,
-          longitude: 126.9780,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}
-      />
+
+      {/* 지도 */}
+      <View style={styles.mapContainer}>
+        <MapView
+          style={styles.map}
+          showsUserLocation={true}
+          region={currentRegion}
+          onRegionChangeComplete={setCurrentRegion}
+        >
+          {posts && posts.map((post) => (
+            post.images.map((image) => (
+              image.location && (
+                <Marker
+                  key={image.uri}
+                  coordinate={{
+                    latitude: image.location.latitude,
+                    longitude: image.location.longitude,
+                  }}
+                />
+              )
+            ))
+          ))}
+        </MapView>
       </View>
+
+      {/* 북마크 버튼 */}
+      <TouchableOpacity>
+        <ThemedView style={styles.bookmarkButton}>
+          <MaterialCommunityIcons name="bookmark-outline" size={22} color={Colors.grayAD} />
+        </ThemedView>
+      </TouchableOpacity>
+
+      {/* 현위치 버튼 */}
+      {Platform.OS === 'ios' &&
+        <TouchableOpacity onPress={moveToCurrentLocation}>
+          <ThemedView style={styles.currentLocationButton}>
+            <MaterialCommunityIcons name="crosshairs-gps" size={22} color={Colors.grayAD} />
+          </ThemedView>
+        </TouchableOpacity>
+      }
+    </SafeAreaView>
   </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
+    flex: 1,
+  },
+  safeArea: {
     flex: 1,
   },
   header: {
@@ -96,7 +175,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
     backgroundColor: Colors.primary,
-    // iOS용 그림자
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.25,
@@ -117,4 +195,38 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+  bookmarkButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.white,
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 66 : 16,
+    right: 16,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 22,
+    // Android용 그림자
+    elevation: 4,
+  },
+  currentLocationButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.white,
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 124 : 70,
+    right: 16,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 22,
+    // Android용 그림자
+    elevation: 4,
+  }
 });
