@@ -4,9 +4,9 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { usePostStore } from '@/stores/postStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Alert, Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Image, Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 
 export default function HomeScreen() {
@@ -32,7 +32,7 @@ export default function HomeScreen() {
       
       // 현재 위치 가져오기
       const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
+        accuracy: Location.Accuracy.Balanced,
       });
 
       const { latitude, longitude } = location.coords;
@@ -52,16 +52,7 @@ export default function HomeScreen() {
     }
   };
 
-  // 화면이 포커스될 때마다 현재 위치 가져오기
-  useFocusEffect(
-    useCallback(() => {
-      console.log('화면이 포커스됨 - 현재 위치 가져오기 시작');
-      getCurrentLocation();
-    }, [])
-  );
-
   const moveToCurrentLocation = () => {
-    console.log('현위치 버튼 클릭됨'); // 버튼 클릭 로그 추가
     getCurrentLocation();
   };
 
@@ -109,7 +100,11 @@ export default function HomeScreen() {
                     latitude: image.location.latitude,
                     longitude: image.location.longitude,
                   }}
-                />
+                >
+                  <View style={styles.photoMarker}>
+                    <Image source={{ uri: image.uri }} style={styles.photoMarkerImage} />
+                  </View>
+                </Marker>
               )
             ))
           ))}
@@ -124,13 +119,18 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       {/* 현위치 버튼 */}
-      {Platform.OS === 'ios' &&
+      {/* {Platform.OS === 'ios' &&
         <TouchableOpacity onPress={moveToCurrentLocation}>
           <ThemedView style={styles.currentLocationButton}>
             <MaterialCommunityIcons name="crosshairs-gps" size={22} color={Colors.grayAD} />
           </ThemedView>
         </TouchableOpacity>
-      }
+      } */}
+      <TouchableOpacity onPress={moveToCurrentLocation}>
+        <ThemedView style={styles.currentLocationButton}>
+          <MaterialCommunityIcons name="crosshairs-gps" size={22} color={Colors.grayAD} />
+        </ThemedView>
+      </TouchableOpacity>
     </SafeAreaView>
   </ThemedView>
   );
@@ -228,5 +228,15 @@ const styles = StyleSheet.create({
     shadowRadius: 22,
     // Android용 그림자
     elevation: 4,
-  }
+  },
+  photoMarker: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  photoMarkerImage: {
+    width: '100%',
+    height: '100%',
+  },
 });
